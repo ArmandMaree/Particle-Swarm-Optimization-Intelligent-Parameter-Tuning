@@ -1,9 +1,10 @@
 import scala.collection.mutable.HashMap
-import scala.collection.mutable.HashMap
 
 object EntryPoint {
 	val swarmSize = 20
 	val maxIterations = 1000
+	val dimensions = 20
+	val functionIndex = 0
 	var swarm = new Array[Particle](swarmSize)
 
 	def main(args: Array[String]): Unit = {
@@ -12,14 +13,19 @@ object EntryPoint {
 			swarm(i) = new Particle
 		}
 
+		printf("Swarm of size %d created.\n", swarmSize)
 		search()
 	}
 
 	def search() = {
 		var currIteration = 0
 		var foundSolution = false
+		var waitTime = 10
 
 		while(currIteration < maxIterations && !foundSolution) {
+			printf("\rCurrent iteration %d out of max %d. Best solution is %.3f. Max Velocity: %.4f               ", currIteration + 1, maxIterations, Particle.getNeighbourhoodBest()("result"), Particle.getMaxVelocity())
+			// Thread.sleep(waitTime)
+
 			for(particle <- swarm) {
 				var objectiveFunctionResult = Particle.objectiveFunction(particle.getCurrentPosition())
 
@@ -35,16 +41,18 @@ object EntryPoint {
 				particle.updatePosition()
 			}
 
+			Particle.updateMaxVelocity(currIteration, maxIterations)
 			currIteration += 1
 		}
 
-		printf("Best solution found was: %.6f at position %.6f\n", Particle.getNeighbourhoodBest()("result"), Particle.getNeighbourhoodBest()("x"))
+		printf("\rBest solution found was: %.6f. With values:                                                        \n", Particle.getNeighbourhoodBest()("result"))
+		printf("%s\n",Particle.getNeighbourhoodBest().toString())
 	}
 
 	class Particle(var c1: Double, var c2: Double, var w: Double) {
 		val id = Particle.newId
-		var currentVelocity = HashMap("x" -> 0.5)
-		var currentPosition = HashMap("x" -> 0.0)
+		var currentVelocity = Particle.initializeVelocity()
+		var currentPosition = Particle.initializePosition()
 		var personalBest = Particle.objectiveFunction(currentPosition)
 		
 		init
@@ -97,6 +105,13 @@ object EntryPoint {
 
 		def updateVelocity() : Unit = {
 			this.currentVelocity = Particle.compunentWiseVectorAddition(this.currentVelocity, Particle.compunentWiseVectorAddition(cognitiveWeight(), socialWeight()))
+
+			this.currentVelocity.foreach((keyvalue) => {
+				if(keyvalue._2 > Particle.maxVelocity){
+					this.currentVelocity(keyvalue._1) = Particle.maxVelocity
+				}
+			})
+			
 		}
 
 		def cognitiveWeight() : HashMap[String, Double] = {
@@ -125,13 +140,17 @@ object EntryPoint {
 
 	object Particle {
 		var random = scala.util.Random
-		private var idCounter = 0
-		private var neighbourhoodBest = new HashMap[String, Double]()
+		var maxVelocity = 100.0
+		var idCounter = 0
+		var neighbourhoodBest = new HashMap[String, Double]()
 
-		private def newId() : Int = {
+		def newId() : Int = {
 			idCounter += 1;
 			return idCounter - 1;
 		}
+
+
+		def getMaxVelocity() : Double = maxVelocity
 
 		def getNeighbourhoodBest() : HashMap[String, Double] = neighbourhoodBest
 
@@ -148,18 +167,73 @@ object EntryPoint {
 				return false
 		}
 
-		def objectiveFunction(position : HashMap[String, Double]): HashMap[String, Double] = {
-			return spherical(position)
+		def initializePosition() : HashMap[String,Double] = {
+			Main.functionIndex match {
+				case 0 => return initializeSphericalPosition()
+			}
+			
+			return new HashMap[String, Double]()
 		}
 
-		def spherical(position : HashMap[String, Double]): HashMap[String, Double] = {
-			return HashMap("x" -> position("x"),
-				"result" -> 1)
+		def initializeSphericalPosition() : HashMap[String,Double] = {
+			var result = new HashMap[String, Double]()
+
+			for(d <- 0 to dimensions - 1) {
+				result("x" + d) = random.nextDouble() * 100 - 50
+			}
+
+			return result
+		}
+
+		def initializeVelocity() : HashMap[String,Double] = {
+			Main.functionIndex match {
+				case 0 => return initializeSphericalVelocity()
+			}
+			
+			return new HashMap[String, Double]()
+		}
+
+		def initializeSphericalVelocity() : HashMap[String,Double] = {
+			var result = new HashMap[String, Double]()
+
+			for(d <- 0 to dimensions - 1) {
+				result("x" + d) = 0.5
+			}
+
+			return result
+		}
+
+		def updateMaxVelocity(currIteration: Int, maxIterations: Int) = {
+			this.maxVelocity = (1 - Math.pow((1.0 * currIteration / maxIterations), 3)) * this.maxVelocity
+
+			if(this.maxVelocity < 0.1){
+				this.maxVelocity = 0.1
+			}
+		}
+
+
+		def objectiveFunction(position : HashMap[String, Double]) : HashMap[String, Double] = {
+			Main.functionIndex match {
+				case 0 => return sphericalObjectiveFunction(position)
+			}
+			
+			return HashMap[String, Double]()
+		}
+
+		def sphericalObjectiveFunction(position : HashMap[String, Double]): HashMap[String, Double] = {
+			var result = new HashMap[String, Double]()
+			var sum = 0.0
+			position.foreach((keyvalue) => {
+				sum += keyvalue._2 * keyvalue._2
+				result(keyvalue._1) = keyvalue._2
+			})
+			result("result") = sum
+			return result
 		}
 
 		def getRandomVector(vectorTemplate: HashMap[String, Double]) : HashMap[String, Double] = {
 			var result = new HashMap[String, Double]()
-			vectorTemplate.foreach((keyvalue) => result(keyvalue._1) = random.nextInt())
+			vectorTemplate.foreach((keyvalue) => result(keyvalue._1) = random.nextDouble())
 			return result
 		}
 
