@@ -33,7 +33,7 @@ object EntryPoint {
 					particle.setPersonalBest(objectiveFunctionResult)
 
 				if(particle.getPersonalBest()("result") < Particle.getNeighbourhoodBest()("result"))
-					Particle.setNeighbourhoodBest(particle.getPersonalBest())
+					Particle.setNeighbourhoodBest(particle.getPersonalBest(), currIteration)
 			}
 
 			for(particle <- swarm) {
@@ -58,7 +58,7 @@ object EntryPoint {
 		init
 
 		def this() = {
-			this(0.1, 0.1, 0.0)
+			this(0.5, 0.5, 0.9)
 		}
 
 		def init(): Unit = {
@@ -67,7 +67,7 @@ object EntryPoint {
 			this.setW(w)
 
 			if(id == 0) {
-				Particle.setNeighbourhoodBest(this.personalBest)
+				Particle.setNeighbourhoodBest(this.personalBest, 0)
 			}
 		}
 
@@ -104,14 +104,13 @@ object EntryPoint {
 		}
 
 		def updateVelocity() : Unit = {
-			this.currentVelocity = Particle.compunentWiseVectorAddition(this.currentVelocity, Particle.compunentWiseVectorAddition(cognitiveWeight(), socialWeight()))
+			this.currentVelocity = Particle.compunentWiseVectorAddition(Particle.scalarTimesVector(w, this.currentVelocity), Particle.compunentWiseVectorAddition(cognitiveWeight(), socialWeight()))
 
 			this.currentVelocity.foreach((keyvalue) => {
-				if(keyvalue._2 > Particle.maxVelocity){
-					this.currentVelocity(keyvalue._1) = Particle.maxVelocity
+				if(Math.abs(keyvalue._2) > Particle.maxVelocity){
+					this.currentVelocity(keyvalue._1) = Particle.maxVelocity * (keyvalue._2 / Math.abs(keyvalue._2))
 				}
 			})
-			
 		}
 
 		def cognitiveWeight() : HashMap[String, Double] = {
@@ -140,9 +139,11 @@ object EntryPoint {
 
 	object Particle {
 		var random = scala.util.Random
-		var maxVelocity = 100.0
+		var maxInitialVelocity = 5.0
+		var maxVelocity = maxInitialVelocity
 		var idCounter = 0
 		var neighbourhoodBest = new HashMap[String, Double]()
+		var neighbourhoodBestIteration = 0
 
 		def newId() : Int = {
 			idCounter += 1;
@@ -154,8 +155,9 @@ object EntryPoint {
 
 		def getNeighbourhoodBest() : HashMap[String, Double] = neighbourhoodBest
 
-		def setNeighbourhoodBest(neighbourhoodBest : HashMap[String, Double]) : Unit = {
+		def setNeighbourhoodBest(neighbourhoodBest : HashMap[String, Double], iterationFound: Int) : Unit = {
 			this.neighbourhoodBest = neighbourhoodBest
+			this.neighbourhoodBestIteration = iterationFound
 		}
 
 		def compareAndSetNeighbourhoodBest(neighbourhoodBest : HashMap[String, Double]) : Boolean = {
@@ -168,53 +170,34 @@ object EntryPoint {
 		}
 
 		def initializePosition() : HashMap[String,Double] = {
-			Main.functionIndex match {
-				case 0 => return initializeSphericalPosition()
-			}
-			
-			return new HashMap[String, Double]()
-		}
-
-		def initializeSphericalPosition() : HashMap[String,Double] = {
 			var result = new HashMap[String, Double]()
 
 			for(d <- 0 to dimensions - 1) {
-				result("x" + d) = random.nextDouble() * 100 - 50
+				result("x" + d) = random.nextDouble() * 65.538 - 32.768
 			}
 
 			return result
 		}
 
 		def initializeVelocity() : HashMap[String,Double] = {
-			Main.functionIndex match {
-				case 0 => return initializeSphericalVelocity()
-			}
-			
-			return new HashMap[String, Double]()
-		}
-
-		def initializeSphericalVelocity() : HashMap[String,Double] = {
 			var result = new HashMap[String, Double]()
 
 			for(d <- 0 to dimensions - 1) {
-				result("x" + d) = 0.5
+				result("x" + d) = random.nextDouble() * this.maxInitialVelocity * 2 - this.maxInitialVelocity
 			}
 
 			return result
 		}
 
-		def updateMaxVelocity(currIteration: Int, maxIterations: Int) = {
-			this.maxVelocity = (1 - Math.pow((1.0 * currIteration / maxIterations), 3)) * this.maxVelocity
-
-			if(this.maxVelocity < 0.1){
-				this.maxVelocity = 0.1
-			}
+		def updateMaxVelocity(currIteration: Int, maxIterations: Int) : Unit = {
+			this.maxVelocity = (1.0 - Math.pow(1.0 * currIteration / maxIterations, 0.5)) * this.maxInitialVelocity
 		}
 
 
 		def objectiveFunction(position : HashMap[String, Double]) : HashMap[String, Double] = {
 			Main.functionIndex match {
 				case 0 => return sphericalObjectiveFunction(position)
+				case 1 => return ackleyObjectiveFunction(position)
 			}
 			
 			return HashMap[String, Double]()
@@ -228,6 +211,21 @@ object EntryPoint {
 				result(keyvalue._1) = keyvalue._2
 			})
 			result("result") = sum
+			return result
+		}
+
+		def ackleyObjectiveFunction(position : HashMap[String, Double]): HashMap[String, Double] = {
+			var result = new HashMap[String, Double]()
+			var sum1 = 0.0
+			var sum2 = 0.0
+
+			position.foreach((keyvalue) => {
+				sum1 += keyvalue._2 * keyvalue._2
+				sum2 += Math.cos(2 * scala.math.Pi * keyvalue._2)
+				result(keyvalue._1) = keyvalue._2
+			})
+
+			result("result") = -20.0 * Math.exp(-0.2 * Math.sqrt(sum1 / dimensions)) - Math.exp(sum2 / dimensions) + 20 + Math.exp(1)
 			return result
 		}
 
