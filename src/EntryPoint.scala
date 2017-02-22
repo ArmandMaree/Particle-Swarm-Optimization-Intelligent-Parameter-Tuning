@@ -4,7 +4,7 @@ object EntryPoint {
 	val swarmSize = 20
 	val maxIterations = 1000
 	val dimensions = 20
-	val functionIndex = 0
+	val functionIndex = 3
 	var swarm = new Array[Particle](swarmSize)
 
 	def main(args: Array[String]): Unit = {
@@ -14,16 +14,17 @@ object EntryPoint {
 		}
 
 		printf("Swarm of size %d created.\n", swarmSize)
+		printf("Using function %d.\n", functionIndex)
 		search()
 	}
 
 	def search() = {
 		var currIteration = 0
 		var foundSolution = false
-		var waitTime = 10
+		var waitTime = 100
 
 		while(currIteration < maxIterations && !foundSolution) {
-			printf("\rCurrent iteration %d out of max %d. Best solution is %.3f. Max Velocity: %.4f               ", currIteration + 1, maxIterations, Particle.getNeighbourhoodBest()("result"), Particle.getMaxVelocity())
+			printf("\rCurrent iteration %d out of max %d. Best solution is %f. Max Velocity: %.4f               ", currIteration + 1, maxIterations, Particle.getNeighbourhoodBest()("result"), Particle.getMaxVelocity())
 			// Thread.sleep(waitTime)
 
 			for(particle <- swarm) {
@@ -58,7 +59,7 @@ object EntryPoint {
 		init
 
 		def this() = {
-			this(0.5, 0.5, 0.9)
+			this(0.5, 0.5, 0.7)
 		}
 
 		def init(): Unit = {
@@ -106,11 +107,11 @@ object EntryPoint {
 		def updateVelocity() : Unit = {
 			this.currentVelocity = Particle.compunentWiseVectorAddition(Particle.scalarTimesVector(w, this.currentVelocity), Particle.compunentWiseVectorAddition(cognitiveWeight(), socialWeight()))
 
-			this.currentVelocity.foreach((keyvalue) => {
-				if(Math.abs(keyvalue._2) > Particle.maxVelocity){
-					this.currentVelocity(keyvalue._1) = Particle.maxVelocity * (keyvalue._2 / Math.abs(keyvalue._2))
-				}
-			})
+			// this.currentVelocity.foreach((keyvalue) => {
+			// 	if(Math.abs(keyvalue._2) > Particle.maxVelocity){
+			// 		this.currentVelocity(keyvalue._1) = Particle.maxVelocity * (keyvalue._2 / Math.abs(keyvalue._2))
+			// 	}
+			// })
 		}
 
 		def cognitiveWeight() : HashMap[String, Double] = {
@@ -171,19 +172,64 @@ object EntryPoint {
 
 		def initializePosition() : HashMap[String,Double] = {
 			var result = new HashMap[String, Double]()
+			var range = new HashMap[String, Double]
+
+			Main.functionIndex match {
+				case 0 => {range = sphericalInitialPosition()}
+				case 1 => {range = ackleyInitialPosition()}
+				case 2 => {range = michalewiczInitialPosition()}
+				case 3 => {range = katsuuraInitialPosition()}
+			}
 
 			for(d <- 0 to dimensions - 1) {
-				result("x" + d) = random.nextDouble() * 65.538 - 32.768
+				result("x" + d) = random.nextDouble() * range("range") + range("min")
 			}
 
 			return result
 		}
 
+		def sphericalInitialPosition(): HashMap[String, Double] = {
+			var result = new HashMap[String, Double]()
+			result += ("min" -> -5.12, "max" -> 5.12, "range" -> 10.24)
+			return result
+		}
+
+		def ackleyInitialPosition(): HashMap[String, Double] = {
+			var result = new HashMap[String, Double]()
+			result += ("min" -> -32.768, "max" -> 32.768, "range" -> 65.538)
+			return result
+		}
+
+		def michalewiczInitialPosition(): HashMap[String, Double] = {
+			var result = new HashMap[String, Double]()
+			result += ("min" -> 0, "max" -> scala.math.Pi, "range" -> scala.math.Pi)
+			return result
+		}
+
+		def katsuuraInitialPosition(): HashMap[String, Double] = {
+			var result = new HashMap[String, Double]()
+			result += ("min" -> -20, "max" -> 20, "range" -> 4)
+			return result
+		}
+
 		def initializeVelocity() : HashMap[String,Double] = {
 			var result = new HashMap[String, Double]()
+			var range = new HashMap[String, Double]
+			
+			Main.functionIndex match {
+				case 0 => {range = sphericalInitialPosition()}
+				case 1 => {range = ackleyInitialPosition()}
+				case 2 => {range = michalewiczInitialPosition()}
+				case 3 => {range = katsuuraInitialPosition()}
+			}
 
 			for(d <- 0 to dimensions - 1) {
-				result("x" + d) = random.nextDouble() * this.maxInitialVelocity * 2 - this.maxInitialVelocity
+				val r = random.nextDouble()
+				result("x" + d) = r * (range("range") * 0.1)
+
+				if(random.nextDouble() > 0.5){
+					result("x" + d) *= -1.0
+				}
 			}
 
 			return result
@@ -198,6 +244,8 @@ object EntryPoint {
 			Main.functionIndex match {
 				case 0 => return sphericalObjectiveFunction(position)
 				case 1 => return ackleyObjectiveFunction(position)
+				case 2 => return michalewiczObjectiveFunction(position)
+				case 3 => return katsuuraObjectiveFunction(position)
 			}
 			
 			return HashMap[String, Double]()
@@ -226,6 +274,44 @@ object EntryPoint {
 			})
 
 			result("result") = -20.0 * Math.exp(-0.2 * Math.sqrt(sum1 / dimensions)) - Math.exp(sum2 / dimensions) + 20 + Math.exp(1)
+			return result
+		}
+
+		def michalewiczObjectiveFunction(position : HashMap[String, Double]): HashMap[String, Double] = {
+			var result = new HashMap[String, Double]()
+			var sum = 0.0
+			var m = 10
+
+			position.foreach((keyvalue) => {
+				val xindex = keyvalue._1.substring(1).toInt + 1
+				sum += Math.sin(keyvalue._2) * Math.pow(Math.sin(xindex * Math.pow(keyvalue._2, 2) / scala.math.Pi), 2 * m) 
+				result(keyvalue._1) = keyvalue._2
+			})
+
+			result("result") = -sum
+			return result
+		}
+
+		def katsuuraObjectiveFunction(position : HashMap[String, Double]): HashMap[String, Double] = {
+			var result = new HashMap[String, Double]()
+			var product = 1.0
+			var tenDivDTwoOne = 10 / Math.pow(Main.dimensions, 1.2)
+			val tenDivDSquare = 10 / Math.pow(Main.dimensions, 2)
+
+			position.foreach((keyvalue) => {
+				var sum = 0.0
+				val xindex = keyvalue._1.substring(1).toInt + 1
+
+				for(i <- 1 to 32) {
+					sum += Math.abs(Math.pow(2.0, i) * keyvalue._2 - Math.round(Math.pow(2.0, i) * keyvalue._2)) / Math.pow(2.0, i)
+					result(keyvalue._1) = keyvalue._2
+				}
+
+				product *= Math.pow((1 + xindex * sum), tenDivDTwoOne)
+				result(keyvalue._1) = keyvalue._2
+			})
+
+			result("result") = tenDivDSquare * product - tenDivDSquare
 			return result
 		}
 
