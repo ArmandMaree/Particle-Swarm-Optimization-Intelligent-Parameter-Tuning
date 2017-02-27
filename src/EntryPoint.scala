@@ -6,48 +6,98 @@ object EntryPoint {
 	val dimensions = 20
 	val functionIndex = 3
 	var swarm = new Array[Particle](swarmSize)
+	var counter = 0
 
 	def main(args: Array[String]): Unit = {
-		// Create swarm
-		for (i <- 0 to swarmSize - 1) {
-			swarm(i) = new Particle
-		}
-
 		printf("Swarm of size %d created.\n", swarmSize)
+		printf("Number of dimensions: %d.\n", dimensions)
 		printf("Using function %d.\n", functionIndex)
 		search()
 	}
 
 	def search() = {
-		var currIteration = 0
-		var foundSolution = false
-		var waitTime = 100
+		var bestParameters = new HashMap[String, Double]()
+		bestParameters += ("optimum" -> Double.MaxValue, "w" -> Double.MaxValue, "c1" -> Double.MaxValue, "c2" -> Double.MaxValue)
 
-		while(currIteration < maxIterations && !foundSolution) {
-			printf("\rCurrent iteration %d out of max %d. Best solution is %f. Max Velocity: %.4f               ", currIteration + 1, maxIterations, Particle.getNeighbourhoodBest()("result"), Particle.getMaxVelocity())
-			// Thread.sleep(waitTime)
+		// brute force w and c1&c2
+		for (w <- -1.1 to 1.1 by 0.1; c1 <- 0.1 to 2.5 by 0.1) {
+			val maxRuns = 30
+			var currIteration = 0
+			var waitTime = 100
+			var c2 = c1
+			var sumOfResults = 0.0
 
-			for(particle <- swarm) {
-				var objectiveFunctionResult = Particle.objectiveFunction(particle.getCurrentPosition())
-
-				if(objectiveFunctionResult("result") < particle.getPersonalBest()("result"))
-					particle.setPersonalBest(objectiveFunctionResult)
-
-				if(particle.getPersonalBest()("result") < Particle.getNeighbourhoodBest()("result"))
-					Particle.setNeighbourhoodBest(particle.getPersonalBest(), currIteration)
+			if(bestParameters("optimum") != Double.MaxValue){
+				printf("\rBest configuration after %d%% done: %s                           ", counter * 100 / 574, bestParameters.toString())
+			}
+			else {
+				printf("\rRunning first iteration...")
 			}
 
-			for(particle <- swarm) {
-				particle.updateVelocity()
-				particle.updatePosition()
+			counter += 1
+
+			// run each configuration of w and c1&c2 maxRuns times.
+			for(currentRun <- 1 to maxRuns) {
+				// printf("\rCurrent average for run %d is %f.           ", currentRun, sumOfResults / currentRun)
+				// initialize swarm
+				for (i <- 0 to swarmSize - 1) {
+					swarm(i) = new Particle
+					
+					if(swarm(i).getW() != w){
+						swarm(i).setW(w)
+					}
+
+					if(swarm(i).getC1() != c1){
+						swarm(i).setC1(c1)
+					}
+
+					if(swarm(i).getC2() != c2){
+						swarm(i).setC2(c2)
+					}
+				}
+
+				// run PSO maxIterations iterations
+				while(currIteration < maxIterations) {
+					// printf("\rCurrent iteration %d out of max %d. Best solution is %f. Max Velocity: %.4f               ", currIteration + 1, maxIterations, Particle.getNeighbourhoodBest()("result"), Particle.getMaxVelocity())
+					// Thread.sleep(waitTime)
+					
+					// for each particle in swarm
+					for(particle <- swarm) {
+						var objectiveFunctionResult = Particle.objectiveFunction(particle.getCurrentPosition()) // get "fitness"
+
+						if(objectiveFunctionResult("result") < particle.getPersonalBest()("result")) // if current pos is better than particle's personal best then update it
+							particle.setPersonalBest(objectiveFunctionResult)
+
+						if(particle.getPersonalBest()("result") < Particle.getNeighbourhoodBest()("result")) // if current pos is better than particle's neighbourhood's best then update it
+							Particle.setNeighbourhoodBest(particle.getPersonalBest(), currIteration)
+					}
+
+					// for each particle in swarm
+					for(particle <- swarm) {
+						particle.updateVelocity()
+						particle.updatePosition()
+					}
+
+					// Particle.updateMaxVelocity(currIteration, maxIterations)
+					currIteration += 1
+				}
+
+				// printf("\rBest solution found was: %.6f. With values:                                                        \n", Particle.getNeighbourhoodBest()("result"))
+				// printf("%s\n",Particle.getNeighbourhoodBest().toString())
+				sumOfResults += Particle.getNeighbourhoodBest()("result")
 			}
 
-			Particle.updateMaxVelocity(currIteration, maxIterations)
-			currIteration += 1
+			sumOfResults /= maxRuns
+
+			if(sumOfResults < bestParameters("optimum")){
+				bestParameters("optimum") = sumOfResults
+				bestParameters("w") = w
+				bestParameters("c1") = c1
+				bestParameters("c2") = c2
+			}
 		}
 
-		printf("\rBest solution found was: %.6f. With values:                                                        \n", Particle.getNeighbourhoodBest()("result"))
-		printf("%s\n",Particle.getNeighbourhoodBest().toString())
+		println() // just print new line
 	}
 
 	class Particle(var c1: Double, var c2: Double, var w: Double) {
