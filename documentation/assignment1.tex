@@ -1,0 +1,100 @@
+%% bare_conf.tex
+%% V1.4b
+%% 2015/08/26
+%% by Michael Shell
+%% See:
+%% http://www.michaelshell.org/
+%% for current contact information.
+%%
+%% This is a skeleton file demonstrating the use of IEEEtran.cls
+%% (requires IEEEtran.cls version 1.8b or later) with an IEEE
+%% conference paper.
+%%
+%% Support sites:
+%% http://www.michaelshell.org/tex/ieeetran/
+%% http://www.ctan.org/pkg/ieeetran
+%% and
+%% http://www.ieee.org/
+
+%%*************************************************************************
+%% Legal Notice:
+%% This code is offered as-is without any warranty either expressed or
+%% implied; without even the implied warranty of MERCHANTABILITY or
+%% FITNESS FOR A PARTICULAR PURPOSE! 
+%% User assumes all risk.
+%% In no event shall the IEEE or any contributor to this code be liable for
+%% any damages or losses, including, but not limited to, incidental,
+%% consequential, or any other damages, resulting from the use or misuse
+%% of any information contained here.
+%%
+%% All comments are the opinions of their respective authors and are not
+%% necessarily endorsed by the IEEE.
+%%
+%% This work is distributed under the LaTeX Project Public License (LPPL)
+%% ( http://www.latex-project.org/ ) version 1.3, and may be freely used,
+%% distributed and modified. A copy of the LPPL, version 1.3, is included
+%% in the base LaTeX documentation of all distributions of LaTeX released
+%% 2003/12/01 or later.
+%% Retain all contribution notices and credits.
+%% ** Modified files should be clearly indicated as such, including  **
+%% ** renaming them and changing author support contact information. **
+%%*************************************************************************
+
+
+% *** Authors should verify (and, if needed, correct) their LaTeX system  ***
+% *** with the testflow diagnostic prior to trusting their LaTeX platform ***
+% *** with production work. The IEEE's font choices and paper sizes can   ***
+% *** trigger bugs that do not appear when using other class files.       ***                          ***
+% The testflow support page is at:
+% http://www.michaelshell.org/tex/testflow/
+
+\documentclass[conference]{IEEEtran}
+
+% *** MATH PACKAGES ***
+%
+\usepackage{amssymb}
+
+
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+\title{Particle Swarm Optimization: Intelligent Parameter Tuning}
+\author{\IEEEauthorblockN{Armand Maree}
+\IEEEauthorblockA{Department of Computer Science\\
+University of Pretoria\\}}
+\maketitle
+
+\begin{abstract}
+Particle Swarm Optimization (PSO) is a optimization algorithm that models the flocking behaviour of certain species of animals in order to solve stochastic real-value problems. These algorithms use control parameters to make slight adjustments to how the swarm behaves. In this paper the author will be discussing the results of using a brute force approach to find these control parameters.
+\end{abstract}
+
+\IEEEpeerreviewmaketitle
+
+
+
+\section{Introduction}
+% no \IEEEPARstart
+A Particle Swarm Optimisor (PSO) is, as described by Lazincia \cite{lazinica2009particle}, an optimization algorithm that attempts to emulate the flocking/schooling behaviour of birds or fish when searching for food. This optimization can occur in a number of dimensions, each spanning across $\mathbb{R}$ \cite{kennedy1997discrete}. Each particle in the swarm has two primary components of influence: cognative and social. A third component, called the inertia weight, is used to regulate the maximum velocity that a particle can move at in a certain direction \cite{eberhart2000comparing}. In this paper, the author will explore the feasibility of finding the optimum value for each of these components by using a brute force search in a subset.
+
+\section{Background}
+
+
+
+\section{Implementation}
+
+
+
+\section{Research Results}
+
+
+
+\section{Conclusion}
+
+
+\bibliographystyle{unsrt}
+\bibliography{bibliography}
+
+\end{document}
+
+
