@@ -48,16 +48,28 @@
 % The testflow support page is at:
 % http://www.michaelshell.org/tex/testflow/
 
-\documentclass[conference]{IEEEtran}
+\documentclass[hidelinks,english,conference]{IEEEtran}
+
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage[T1]{fontenc}
+\usepackage{babel}
+\usepackage{wrapfig}
+\usepackage{hyperref}
+
+\date{\today}
+
 
 % *** MATH PACKAGES ***
 %
 \usepackage{amssymb}
+\usepackage{amsmath}
 
+\usepackage{algorithm2e}
 
 \hyphenation{op-tical net-works semi-conduc-tor}
 
-
+\graphicspath{{Pictures/}}
 \begin{document}
 \title{Particle Swarm Optimization: Intelligent Parameter Tuning}
 \author{\IEEEauthorblockN{Armand Maree}
@@ -71,18 +83,111 @@ Particle Swarm Optimization (PSO) is a optimization algorithm that models the fl
 
 \IEEEpeerreviewmaketitle
 
-
-
-\section{Introduction}
-% no \IEEEPARstart
+\section{Introduction}\label{intoductionSection}
 A Particle Swarm Optimisor (PSO) is, as described by Lazincia \cite{lazinica2009particle}, an optimization algorithm that attempts to emulate the flocking/schooling behaviour of birds or fish when searching for food. This optimization can occur in a number of dimensions, each spanning across $\mathbb{R}$ \cite{kennedy1997discrete}. Each particle in the swarm has two primary components of influence: cognative and social. A third component, called the inertia weight, is used to regulate the maximum velocity that a particle can move at in a certain direction \cite{eberhart2000comparing}. In this paper, the author will explore the feasibility of finding the optimum value for each of these components by using a brute force search in a subset.
 
 \section{Background}
+As discussed in section \cite{intoductionSection}, the two components that influence a particle's behaviour is cognative and social. The cognative component refers to the influence that a particle experiences due to the best position it has found so far \cite{shi1998modified}. A more animalistic analogy of this would be that if you feed a bird it will be more inclined to visit your house in the future to get more food. The social component refers to how a particle is influenced by the best position found by other particles in the neighbourhood \cite{shi1998modified}. The analogy here would be that if you feed one bird the other birds in the flock might be convinced to also visit your house to get food. There is a trade-off between these two components. The cognative component favours exploration of the search space, while the social component favours exploitation of the global best position.\\
+The last parameter is the inertia weight developed by Shi and Eberhart (1998). The role of this parametr is to balance the global search and local search \cite{shi1998modified} and thus controls the velocity a particle can move at.\\
+In order to test the feasibility of the brute force approach four objective functions were used. 
+\begin{itemize}
+	\item Spherical
+		\begin{equation}
+			f(\textbf{x})=\sum_{i=1}^{d}x_{i}^{2}
+		\end{equation}
+	\item Ackley\\ 
+		\begin{equation}
+			f(\textbf{x})=-20e^{\sqrt[-0.2]{\frac{1}{d}\sum_{i=1}^{d}x_{i}^{2}}}-e^{\frac{1}{d}\sum_{i=1}^{d}\cos(2\pi x_{i})}+20+e
+		\end{equation}
+	\item Michalewicz\\
+		\begin{equation}
+			f(\textbf{x})=-\sum_{i=1}^{d}[\sin(x_i)\sin^{2*10}(\frac{ix_{i}^{2}}{\pi})]
+		\end{equation}
+	\item Katsuura\\
+		\begin{equation}
+			\begin{split}
+			f(\textbf{x})=\frac{10}{d^{2}\prod_{i=1}^{d}}(1+i\sum_{j=1}^{32}\frac{\left|2^{j}x_{i}-round(2^{j}x_{i})\right|}{2^{j}})^{\frac{10}{d^{1.2}}}\\-\frac{10}{d^{2}}
+			\end{split}
+		\end{equation}
+\end{itemize}
 
-
+The topology that was used is the star topology, as prescribed by the project specifications. This model states that all the particles in the swarm are connected to all other particles in the swarm. This means that there is only one neighbourbood and all particles belong to it. This approach means that a global best position (gbest) will be used as the current optimum.
 
 \section{Implementation}
+A swarm of 20 particles was used to solve all the objective functions in a 20-dimensional space. The restrictions on $w$, $c_1$ and $c_2$ was specified as follows:
+\begin{itemize}
+	\item $w \in \left[-1.1, 1.1\right]$
+	\item $c_1 + c_2 \in \left(0.0, 5.0\right]$
+	\item $c_1 = c_2$
+\end{itemize}
 
+Each of these values had a step size of $0.1$.
+
+The velocity, $\textbf{v}_i$, of a particle, $par_i$, will be used to update the position, $\textbf{x}_i$, of $par_i$, as follows:\\
+\begin{equation}
+	\textbf{x}_i(t+1)=\textbf{x}_i(t) + \textbf{v}_i(t+1)
+\end{equation}
+where,
+\begin{align}\label{velocityEquation}
+\begin{split}
+	\textbf{v}_i(t+1)=w\textbf{v}_i(t) + c_1\textbf{r}_1 \otimes (\textbf{p}_i(t) - \textbf{x}_i(t)) +\\c_2\textbf{r}_2 \otimes (\textbf{g}_i(t) - \textbf{x}_i(t))
+\end{split}
+\end{align}
+where,\\
+\begin{center}
+	$\textbf{p}_i$ refers to the personal best position of $par_i$,\\
+	and,\\
+	$\textbf{g}_i$ refers to the global best position of the entire swarm.
+\end{center}
+
+$\otimes$ refers to componentwise multiplication of vectors.\\
+$w$ used in equation \ref{velocityEquation} is the inertia weight as discussed in section \ref{intoductionSection}.\\
+$c_{1}$ and $c_{2}$  used in equation \ref{velocityEquation} represents the cognative and social components respectively as discussed in section \ref{intoductionSection}.
+
+Since PSO is a stochastic algorithm a single run can have abnormally good or bad results. Each set of possible combinations between $w$, $c_{1}$ and $c_{2}$ has been tested 30 times and the average result of all 30 runs has been taken as the optimal result for the specific configuration. The best configuration's result, along with the corresponding values for $w$, $c_{1}$ and $c_{2}$ is stored each time a new optimum is found.
+
+A simple pseudo code version of the entire algorithm is shown in algorithm \ref{SolvePSO} and \ref{parameterFindAlgo}:
+\begin{algorithm}
+\SetAlgoLined
+\caption{Main PSO Algorithm}\label{SolvePSO}initializeSwarm()\\
+\While{not (stopping condition)}{
+	\ForEach{particle in swarm}{
+		var objectiveFunctionResult = particle.getObjectiveFunctionResult()
+		\If{objectiveFunctionResult < particle.personalBest}{
+			/* Save current position as personal best */
+		}
+		\If{objectiveFunctionResult < particle.neighbourhoodBest}{
+			/* Save current position as neighbourhood best */
+		}
+	}
+	\ForEach{particle in swarm}{
+		particle.updateVelocity()
+		particle.updatePosition()
+	}
+}
+return particle[0].neighbourhoodBest
+\end{algorithm}
+
+\begin{algorithm}
+\SetAlgoLined
+\caption{PSO Parameter Finding}\label{parameterFindAlgo}
+var bestSolution = infinity
+\For{w <- -1.1 to 1.1}{
+	\For{c1 <- 0.1 to 2.5}{
+		c2 = c1\\
+		\For{currentRun <- 1 to 30}{
+			/* call "solvePSO" function which is algorithm \ref{SolvePSO} */\\
+			var bestResult += objectiveFunction(solvePSO())
+		}
+		\If{bestResult/30 < bestSolution["result"]}{
+			bestSolution["result"] = bestResult\\
+			bestSolution["w"] = w\\
+			bestSolution["c1"] = c1\\
+			bestSolution["c2"] = c2
+		}
+	}
+}
+\end{algorithm}
 
 
 \section{Research Results}
