@@ -4,7 +4,7 @@ object EntryPoint {
 	val swarmSize = 20
 	val maxIterations = 1000
 	val dimensions = 20
-	val functionIndex = 3
+	val functionIndex = 0
 	var swarm = new Array[Particle](swarmSize)
 	var counter = 0
 
@@ -17,6 +17,7 @@ object EntryPoint {
 
 	def search() = {
 		var bestParameters = new HashMap[String, Double]()
+		var bestParticle = new HashMap[String, Double]()
 		bestParameters += ("optimum" -> Double.MaxValue, "w" -> Double.MaxValue, "c1" -> Double.MaxValue, "c2" -> Double.MaxValue)
 
 		// brute force w and c1&c2
@@ -94,10 +95,13 @@ object EntryPoint {
 				bestParameters("w") = w
 				bestParameters("c1") = c1
 				bestParameters("c2") = c2
+				bestParticle = Particle.getNeighbourhoodBest()
 			}
 		}
 
 		println() // just print new line
+		printf("\rBest solution found was: %.6f. With values:\n", bestParticle("result"))
+		printf("%s\n", bestParticle.toString())
 	}
 
 	class Particle(var c1: Double, var c2: Double, var w: Double) {
