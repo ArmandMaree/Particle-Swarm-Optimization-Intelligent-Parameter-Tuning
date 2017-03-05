@@ -4,7 +4,8 @@ object EntryPoint {
 	val swarmSize = 20
 	val maxIterations = 1000
 	val dimensions = 20
-	val functionIndex = 1
+	val functionIndex = 3
+	val maxRuns = 30
 	var swarm = new Array[Particle](swarmSize)
 	var counter = 0
 
@@ -18,18 +19,20 @@ object EntryPoint {
 	def search() = {
 		var bestParameters = new HashMap[String, Double]()
 		var bestParticle = new HashMap[String, Double]()
+		var currentResults = new Array[Double](maxRuns)
+		var currentOptimumResults = new Array[Double](maxRuns)
 		bestParameters += ("optimum" -> Double.MaxValue, "w" -> Double.MaxValue, "c1" -> Double.MaxValue, "c2" -> Double.MaxValue)
 
 		// brute force w and c1&c2
 		for (w <- -1.1 to 1.1 by 0.1; c1 <- 0.1 to 2.5 by 0.1) {
-			val maxRuns = 30
 			var currIteration = 0
 			var waitTime = 100
 			var c2 = c1
 			var sumOfResults = 0.0
 
 			if(bestParameters("optimum") != Double.MaxValue){
-				printf("\rBest configuration after %d%% done: %s                           ", counter * 100 / 574, bestParameters.toString())
+				// printf("\rBest configuration after %d%% done: %s                           ", counter * 100 / 574, bestParameters.toString())
+				printf("\rProgress: %d%%                   ", counter * 100 / 574)
 			}
 			else {
 				printf("\rRunning first iteration...")
@@ -86,6 +89,7 @@ object EntryPoint {
 				// printf("\rBest solution found was: %.6f. With values:                                                        \n", Particle.getNeighbourhoodBest()("result"))
 				// printf("%s\n",Particle.getNeighbourhoodBest().toString())
 				sumOfResults += Particle.getNeighbourhoodBest()("result")
+				currentResults(currentRun - 1) = Particle.getNeighbourhoodBest()("result")
 			}
 
 			sumOfResults /= maxRuns
@@ -96,12 +100,26 @@ object EntryPoint {
 				bestParameters("c1") = c1
 				bestParameters("c2") = c2
 				bestParticle = Particle.getNeighbourhoodBest()
+				currentOptimumResults = currentResults
 			}
 		}
 
-		println() // just print new line
-		printf("\rBest solution found was: %.6f. With values:\n", bestParticle("result"))
-		printf("%s\n", bestParticle.toString())
+		// println() // just print new line
+		var variance = 0.0
+		for(i <- 0 to maxRuns - 1) {
+			variance += Math.pow(currentOptimumResults(i) - bestParticle("result"), 2)
+		}
+		variance /= maxRuns
+		printf("\nBest solution found was:\n")
+		printf("\tw:  %f\n", bestParameters("w"))
+		printf("\tc1:  %f\n", bestParameters("w"))
+		printf("\tc2:  %f\n", bestParameters("w"))
+		printf("\tAverage:  %f\n", bestParticle("result"))
+		printf("\tVariance: %f\n", variance)
+		printf("With values:\n")
+		for(i <- 0 to dimensions - 1) {
+			printf("\tx%d=%f\n", i, bestParticle("x" + i))
+		}
 	}
 
 	class Particle(var c1: Double, var c2: Double, var w: Double) {
