@@ -4,7 +4,7 @@ object EntryPoint {
 	val swarmSize = 20
 	val maxIterations = 1000
 	val dimensions = 20
-	val functionIndex = 0
+	val functionIndex = 1
 	var swarm = new Array[Particle](swarmSize)
 	var counter = 0
 
