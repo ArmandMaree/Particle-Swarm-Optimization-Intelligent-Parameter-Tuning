@@ -61,7 +61,6 @@
 
 
 % *** MATH PACKAGES ***
-%
 \usepackage{amssymb}
 \usepackage{amsmath}
 
@@ -78,40 +77,44 @@ University of Pretoria\\}}
 \maketitle
 
 \begin{abstract}
-Particle Swarm Optimization (PSO) is a optimization algorithm that models the flocking behaviour of certain species of animals in order to solve stochastic real-value problems. These algorithms use control parameters to make slight adjustments to how the swarm behaves. In this paper the author will be discussing the results of using a brute force approach to find these control parameters.
+Particle Swarm Optimization (PSO) is a optimization algorithm that models the flocking behaviour of certain species of animals in order to solve stochastic real-value problems. These algorithms use control parameters to make slight adjustments to how the swarm behaves. In this report the author will be discussing the results of using a brute force approach to find these control parameters.
 \end{abstract}
 
 \IEEEpeerreviewmaketitle
 
 \section{Introduction}\label{intoductionSection}
-A Particle Swarm Optimisor (PSO) is, as described by Lazincia \cite{lazinica2009particle}, an optimization algorithm that attempts to emulate the flocking/schooling behaviour of birds or fish when searching for food. This optimization can occur in a number of dimensions, each spanning across $\mathbb{R}$ \cite{kennedy1997discrete}. Each particle in the swarm has two primary components of influence: cognative and social. A third component, called the inertia weight, is used to regulate the maximum velocity that a particle can move at in a certain direction \cite{eberhart2000comparing}. In this paper, the author will explore the feasibility of finding the optimum value for each of these components by using a brute force search in a subset.
+A Particle Swarm Optimisor (PSO) is, as described by Lazincia \cite{lazinica2009particle}, an optimization algorithm that attempts to emulate the flocking/schooling behaviour of birds or fish when searching for food. This optimization can occur in a number of dimensions, each spanning across $\mathbb{R}$ \cite{kennedy1997discrete}. Each particle in the swarm has two primary components of influence: cognative and social. A third component, called the inertia weight, is used to regulate the maximum velocity that a particle can move at in a certain direction \cite{eberhart2000comparing}. In this report, the author will explore the feasibility of finding the optimum value for each of these components by using a brute force search in a subset.
 
 \section{Background}
-As discussed in section \cite{intoductionSection}, the two components that influence a particle's behaviour is cognative and social. The cognative component refers to the influence that a particle experiences due to the best position it has found so far \cite{shi1998modified}. A more animalistic analogy of this would be that if you feed a bird it will be more inclined to visit your house in the future to get more food. The social component refers to how a particle is influenced by the best position found by other particles in the neighbourhood \cite{shi1998modified}. The analogy here would be that if you feed one bird the other birds in the flock might be convinced to also visit your house to get food. There is a trade-off between these two components. The cognative component favours exploration of the search space, while the social component favours exploitation of the global best position.\\
-The last parameter is the inertia weight developed by Shi and Eberhart (1998). The role of this parametr is to balance the global search and local search \cite{shi1998modified} and thus controls the velocity a particle can move at.\\
+As discussed in section \ref{intoductionSection}, the two components that influence a particle's behaviour is cognative and social. The cognative component refers to the influence that a particle experiences due to the best position it has found so far \cite{shi1998modified}. A more animalistic analogy of this would be that if you feed a bird it will be more inclined to visit your house in the future to get more food. The social component refers to how a particle is influenced by the best position found by other particles in the neighbourhood \cite{shi1998modified}. The analogy here would be that if you feed one bird the other birds in the flock might be more inclined to also visit your house to get food. There is a trade-off between these two components. The cognative component favours exploration of the search space, while the social component favours exploitation of the global best position.
+
+The last parameter is the inertia weight developed by Shi and Eberhart (1998). The role of this parameter is to balance global search and local search. \cite{shi1998modified} and thus controls the velocity a particle can move at. The inertia weight was originally proposed in order to avoid the velocity clamping mechanism that was used before.
+
 In order to test the feasibility of the brute force approach four objective functions were used. 
 \begin{itemize}
 	\item Spherical
-		\begin{equation}
+		\begin{equation}\label{sphericalEquation}
 			f(\textbf{x})=\sum_{i=1}^{d}x_{i}^{2}
 		\end{equation}
 	\item Ackley\\ 
-		\begin{equation}
+		\begin{equation}\label{ackleyEquation}
 			f(\textbf{x})=-20e^{\sqrt[-0.2]{\frac{1}{d}\sum_{i=1}^{d}x_{i}^{2}}}-e^{\frac{1}{d}\sum_{i=1}^{d}\cos(2\pi x_{i})}+20+e
 		\end{equation}
 	\item Michalewicz\\
-		\begin{equation}
+		\begin{equation}\label{michalewiczEquation}
 			f(\textbf{x})=-\sum_{i=1}^{d}[\sin(x_i)\sin^{2*10}(\frac{ix_{i}^{2}}{\pi})]
 		\end{equation}
 	\item Katsuura\\
-		\begin{equation}
+		\begin{equation}\label{katsuuraEquation}
 			\begin{split}
 			f(\textbf{x})=\frac{10}{d^{2}\prod_{i=1}^{d}}(1+i\sum_{j=1}^{32}\frac{\left|2^{j}x_{i}-round(2^{j}x_{i})\right|}{2^{j}})^{\frac{10}{d^{1.2}}}\\-\frac{10}{d^{2}}
 			\end{split}
 		\end{equation}
 \end{itemize}
 
-The topology that was used is the star topology, as prescribed by the project specifications. This model states that all the particles in the swarm are connected to all other particles in the swarm. This means that there is only one neighbourbood and all particles belong to it. This approach means that a global best position (gbest) will be used as the current optimum.
+The topology that was used is the star topology, as prescribed by the project specifications. This model states that all the particles in the swarm are connected to all other particles in the swarm. This means that there is only one neighbourbood and all particles belong to it. This approach means that the global best position (gbest) will be used as the current optimum.
+
+The brute force approach used in this report refers to the systematic exhaustive evaluation of a parameter that falls in a finite set of numbers. Since the range that these three parameters usually fall in is known and small, it might prove to be a feasible option to find these parameters via this approach.
 
 \section{Implementation}
 A swarm of 20 particles was used to solve all the objective functions in a 20-dimensional space. The restrictions on $w$, $c_1$ and $c_2$ was specified as follows:
@@ -190,11 +193,123 @@ var bestSolution = infinity
 \end{algorithm}
 
 
-\section{Research Results}
-
-
+\section{Research Results}\label{researchResultsSection}
+The algorithm managed to obtain values for all the parameters to all the objective functions. The results were as follows:
+\begin{itemize}
+	\item Spherical\\
+		\begin{itemize}
+			\item $Optimum \approx 3.4 \times 10^{-193}$
+			\item $w = 0.6$
+			\item $c1 = 1.1$
+			\item $c2 = 1.1$
+			\item $x_{0} \approx 1.6 \times 10^{-98}$
+			\item $x_{1} \approx -6.2 \times 10^{-98}$
+			\item $x_{2} \approx 1.8 \times 10^{-98}$
+			\item $x_{3} \approx 1.4 \times 10^{-98}$
+			\item $x_{4} \approx -8.6 \times 10^{-98}$
+			\item $x_{5} \approx 2.1 \times 10^{-98}$
+			\item $x_{6} \approx 3.0 \times 10^{-98}$
+			\item $x_{7} \approx 1.0 \times 10^{-97}$
+			\item $x_{8} \approx -1.9 \times 10^{-98}$
+			\item $x_{9} \approx 7.4 \times 10^{-99}$
+			\item $x_{10} \approx -1.9 \times 10^{-99}$
+			\item $x_{11} \approx 1.6 \times 10^{-97}$
+			\item $x_{12} \approx 9.9 \times 10^{-98}$
+			\item $x_{13} \approx 1.6 \times 10^{-97}$
+			\item $x_{14} \approx -2.7 \times 10^{-98}$
+			\item $x_{15} \approx -2.1 \times 10^{-97}$
+			\item $x_{16} \approx 1.2 \times 10^{-97}$
+			\item $x_{17} \approx -7.1 \times 10^{-98}$
+			\item $x_{18} \approx 1.0 \times 10^{-97}$
+			\item $x_{19} \approx -4.2 \times 10^{-97}$
+		\end{itemize}
+	\item Ackley\\
+		\begin{itemize}
+			\item $Optimum \approx 7.5 \times 10^{-15}$
+			\item $w = 0.3$
+			\item $c1 = 1.6$
+			\item $c2 = 1.6$
+			\item $x_{0} \approx 4.7 \times 10^{-16}$
+			\item $x_{1} \approx -5.6 \times 10^{-15}$
+			\item $x_{2} \approx -3.2 \times 10^{-15}$
+			\item $x_{3} \approx -1.5 \times 10^{-15}$
+			\item $x_{4} \approx -1.9 \times 10^{-15}$
+			\item $x_{5} \approx 1.8 \times 10^{-15}$
+			\item $x_{6} \approx 1.5 \times 10^{-15}$
+			\item $x_{7} \approx 1.3 \times 10^{-15}$
+			\item $x_{8} \approx -3.2 \times 10^{-15}$
+			\item $x_{9} \approx -2.2 \times 10^{-15}$
+			\item $x_{10} \approx -2.9 \times 10^{-15}$
+			\item $x_{11} \approx 3.9 \times 10^{-15}$
+			\item $x_{12} \approx 1.4 \times 10^{-15}$
+			\item $x_{13} \approx -6.2 \times 10^{-16}$
+			\item $x_{14} \approx -2.3 \times 10^{-15}$
+			\item $x_{15} \approx -3.5 \times 10^{-15}$
+			\item $x_{16} \approx -1.9 \times 10^{-15}$
+			\item $x_{17} \approx -2.0 \times 10^{-15}$
+			\item $x_{18} \approx -2.0 \times 10^{-15}$
+			\item $x_{19} \approx 8.5 \times 10^{-16}$
+		\end{itemize}
+	\item Michalewicz\\
+		\begin{itemize}
+			\item $Optimum \approx -19.49$
+			\item $w = 0.6$
+			\item $c1 = 1.0$
+			\item $c2 = 1.0$
+			\item $x_{0} \approx 2.20$
+			\item $x_{1} \approx 1.57$
+			\item $x_{2} \approx 1.28$
+			\item $x_{3} \approx 1.11$
+			\item $x_{4} \approx 1.72$
+			\item $x_{5} \approx 1.57$
+			\item $x_{6} \approx 1.88$
+			\item $x_{7} \approx 1.36$
+			\item $x_{8} \approx 1.66$
+			\item $x_{9} \approx 1.57$
+			\item $x_{10} \approx 1.5$
+			\item $x_{11} \approx 1.43$
+			\item $x_{12} \approx 1.63$
+			\item $x_{13} \approx 1.33$
+			\item $x_{14} \approx 1.52$
+			\item $x_{15} \approx -1380.72$
+			\item $x_{16} \approx 1.43$
+			\item $x_{17} \approx 1.57$
+			\item $x_{18} \approx 1.35$
+			\item $x_{19} \approx 1.65$
+		\end{itemize}
+	\item Katsuura\\
+		\begin{itemize}
+			\item $Optimum \approx 1.08$
+			\item $w = 0.7$
+			\item $c1 = 1.4$
+			\item $c2 = 1.4$
+			\item $x_{0} \approx -1.5 \times 10^{7}$
+			\item $x_{1} \approx 4.3 \times 10^{8}$
+			\item $x_{2} \approx -7.6 \times 10^{7}$
+			\item $x_{3} \approx 6.3 \times 10^{8}$
+			\item $x_{4} \approx 3.2 \times 10^{8}$
+			\item $x_{5} \approx -1.0 \times 10^{8}$
+			\item $x_{6} \approx 1.0 \times 10^{8}$
+			\item $x_{7} \approx -1.1 \times 10^{5}$
+			\item $x_{8} \approx 4.9 \times 10^{8}$
+			\item $x_{9} \approx -1.1 \times 10^{9}$
+			\item $x_{10} \approx 8.7 \times 10^{7}$
+			\item $x_{11} \approx 4.1 \times 10^{8}$
+			\item $x_{12} \approx 8.4 \times 10^{7}$
+			\item $x_{13} \approx -7.9 \times 10^{8}$
+			\item $x_{14} \approx -1.3 \times 10^{8}$
+			\item $x_{15} \approx -3.7 \times 10^{8}$
+			\item $x_{16} \approx -5.1 \times 10^{8}$
+			\item $x_{17} \approx 5.9 \times 10^{8}$
+			\item $x_{18} \approx -7.1 \times 10^{8}$
+			\item $x_{19} \approx -4.5 \times 10^{6}$
+		\end{itemize}
+\end{itemize}
 
 \section{Conclusion}
+As the results in section \ref{researchResultsSection} indicate, if a small range for each of the three parameters is known, it is possible to find the optimum value for an objective function. This can even be done is a fairly short amount of time if the objective function is simple, as is the case with equation \ref{sphericalEquation}, \ref{ackleyEquation} and \ref{michalewiczEquation}, but as the complexity (or rather computational time) grows, like with equation \ref{katsuuraEquation}, this process can become quite lengthy.
+
+Thus, if an equation does not contain a large amount of computational demanding steps, this brute force approach might be a feasible option since it is simple and quick to implement.
 
 
 \bibliographystyle{unsrt}
